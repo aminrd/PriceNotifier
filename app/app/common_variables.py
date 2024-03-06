@@ -1,3 +1,5 @@
+APPLICATION_NAME = "PriceNotifier"
+
 PRICE_TYPES = [
     "url",
     "stock",

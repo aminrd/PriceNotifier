@@ -10,7 +10,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Price Notifier</title>
+    <title>{{APPLICATION_NAME}}</title>
 
     <!-- Custom fonts for this template-->
     <link href={% static "vendor/fontawesome/css/all.min.css" %} rel="stylesheet" type="text/css">
@@ -34,7 +34,7 @@
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{% url 'home' %}">
                 <i class="fa-solid fa-house"></i>
-                <div class="sidebar-brand-text mx-3">Price Notifier </div>
+                <div class="sidebar-brand-text mx-3">{{APPLICATION_NAME}}</div>
             </a>
 
             <!-- Divider -->
@@ -127,7 +127,7 @@
             <footer class="sticky-footer bg-white">
                 <div class="container my-auto">
                     <div class="copyright text-center my-auto">
-                        <span>Copyright &copy; Price Notifier {% now "Y" %}</span>
+                        <span>Copyright &copy; {{APPLICATION_NAME}} {% now "Y" %}</span>
                     </div>
                 </div>
             </footer>

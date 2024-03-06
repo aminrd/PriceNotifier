@@ -21,6 +21,7 @@ def home(request):
     homepage = pages.Home()
     return homepage.render(request)
 
+
 def settings(request):
     setting_page = pages.Settings()
     return setting_page.render(request)

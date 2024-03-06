@@ -1,14 +1,10 @@
 import os
 from datetime import datetime
 from pathlib import Path
+from .common_variables import APPLICATION_NAME
 
 now = datetime.now()
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-76p^^_#tp0v)$kgy(r2^m^12j@j-mp%a#6^cbc))0tb#pe-4&='
@@ -27,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'app.app.WebAppConfig'
 ]
 
 MIDDLEWARE = [
@@ -113,4 +110,4 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 __author__ = "Amin Aghaee"
-__copyright__ = f"Copyright {now.year}, PriceNotifier"
+__copyright__ = f"Copyright {now.year}, {APPLICATION_NAME}"
