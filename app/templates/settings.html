@@ -1,4 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
-set settings here
+
+<form class="form-group">
+      {% for setting in user_settings %}
+        <div class="form-group">
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="{{setting.key}}">{{ setting.get_icon|safe }} {{ setting.get_key_name }} : {{ setting.get_name }}</label>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" id="{{setting.key}}" class="form-control " value ="{{setting.value}}">
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
 {% endblock %}

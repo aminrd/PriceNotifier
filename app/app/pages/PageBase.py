@@ -13,7 +13,7 @@ class PageBase:
             "page_name": self.page_name,
             "APPLICATION_NAME": APPLICATION_NAME
         }
-        for k, v in self.params:
+        for k, v in self.params.items():
             cntx[k] = v
         return cntx
 

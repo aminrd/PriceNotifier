@@ -1,3 +1,5 @@
+import uuid
+
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 
 from .models import *
@@ -19,6 +21,25 @@ from . import pages
 
 def home(request):
     homepage = pages.Home()
+    return homepage.render(request)
+
+
+def add_stock(request):
+    homepage = pages.NewStock()
+    return homepage.render(request)
+
+
+def modify_stock(request, id):
+    homepage = pages.ModifyStock()
+    return homepage.render(request)
+
+def add_other(request):
+    homepage = pages.NewOther()
+    return homepage.render(request)
+
+
+def modify_other(request, id):
+    homepage = pages.ModifyOther()
     return homepage.render(request)
 
 

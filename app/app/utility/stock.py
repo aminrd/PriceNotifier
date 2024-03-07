@@ -13,7 +13,7 @@ def get_current_stock_price(code: str) -> Result:
             result.success = False
             return result
 
-        result.item = history.Close.iloc[-1]
+        result.item = round(history.Close.iloc[-1], 2)
         result.success = True
 
     except Exception as e:

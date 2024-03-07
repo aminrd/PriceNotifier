@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block content %}
+        <div class="row">
+          <div class="col-4">
+            <form>
+              <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" class="form-control" id="name">
+                <small class="form-text text-muted">Name of the stack tracking</small>
+              </div>
+              <div class="form-group">
+                <label for="code">Code</label>
+                <input type="text" class="form-control" id="code">
+                <small class="form-text text-muted">Stock code (e.g. NVDA, AAPL)</small>
+              </div>
+              <div class="form-group">
+                <label for="base_value">Current Value</label>
+                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="base_value">
+                <small class="form-text text-muted">Current value of the stock (e.g. 880.0)</small>
+              </div>
+              <div class="form-group">
+                <label for="high_value">High Value <i class="fa-solid fa-arrow-trend-up" style="color: #63E6BE;"></i></label>
+                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="high_value">
+                <small class="form-text text-muted">You will be notified if value goes above this value</small>
+              </div>
+              <div class="form-group">
+                <label for="low_value">Low Value <i class="fa-solid fa-arrow-trend-down" style="color: #d62e2e;"></i></label>
+                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="low_value">
+                <small class="form-text text-muted">ou will be notified if value goes below this value</small>
+              </div>
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="notify" checked>
+                <label class="form-check-label" for="notify">Receive notifications for this stock</label>
+              </div>
+              <hr>
+              <button type="submit" class="btn btn-primary">Submit</button>
+            </form>
+          </div>
+
+          <div class="col-8">
+            <h5>Looking for a stock?</h5>
+            <div class="row justify-content-center">
+              <form class="form-inline">
+                <label class="sr-only" for="query_stock">Stock Code</label>
+                <div class="input-group mb-2 mr-sm-2">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text">@</div>
+                  </div>
+                  <input type="text" class="form-control" id="query_stock" placeholder="nvda, aapl,...">
+                </div>
+              </form>
+              <button class="btn btn-info mb-2" onclick="query()"><i class="fa-solid fa-magnifying-glass-dollar"></i></button>
+            </div>
+
+            <div class="row justify-content-center d-none" id="query_result:div">
+              <div class="col-12">
+              <br>
+              <!-- Current price card -->
+              <div class="row justify-content-center d-none" id="query_result:price">
+                  <div class="card border-left-success shadow h-100 py-2">
+                      <div class="card-body">
+                          <div class="row no-gutters align-items-center">
+                              <div class="col mr-3">
+                                  <div class="text-xs font-weight-bold text-success text-uppercase mb-1">current closing</div>
+                                  <div class="h5 mb-0 font-weight-bold text-gray-800" id="query_result:value">$0000000</div>
+                              </div>
+                              <div class="col-auto">
+                                  <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+
+            </div>
+            </div>
+
+          </div>
+        </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function make_visible(element){
+    element.classList.remove("d-none");
+  }
+
+  function search_current_price(code){
+    const xhr = new XMLHttpRequest();
+    let url = "api/stock/" + code + "/current"
+    xhr.open("GET", url);
+    xhr.send();
+    xhr.responseType = "json";
+    xhr.onload = () => {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        let data = xhr.response;
+        let result_value_element = document.getElementById("query_result:value");
+        result_value_element.innerHTML = "$" + data["price"];
+
+        let price_holder = document.getElementById("query_result:price")
+        make_visible(price_holder);
+      } else {
+        console.log(`Error: ${xhr.status}`);
+      }
+    };
+  }
+
+  function query() {
+    let result_div = document.getElementById("query_result:div")
+    make_visible(result_div);
+
+    let code_element = document.getElementById("query_stock");
+    let code = code_element.value.toUpperCase();
+
+    search_current_price(code);
+  }
+</script>
+{% endblock %}
