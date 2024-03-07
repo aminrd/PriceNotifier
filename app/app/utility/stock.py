@@ -1,5 +1,10 @@
+import time
+
 import yfinance as yf
 from ..common_variables import Result
+from ..models import Stock
+
+type StockList = list[Stock]
 
 
 def get_current_stock_price(code: str) -> Result:
@@ -40,3 +45,17 @@ def get_year_stock_price(code: str, years=1) -> Result:
         result.message = str(e)
 
     return result
+
+
+def sync_stocks(stocks: StockList) -> StockList:
+    if stocks is None:
+        return []
+
+    for stock in stocks:
+        update_result = get_current_stock_price(stock.code)
+        if update_result.success:
+            stock.last_value = update_result.item
+            stock.last_check_timestamp = time.time()
+            stock.save()
+
+    return stocks

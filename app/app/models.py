@@ -42,8 +42,10 @@ def epoch_to_datetime(epoch: float) -> str:
 
 class ChangeLogBase:
     id = None
+    name = None
     base_value = None
     high_value = None
+    low_value = None
     last_value = None
     last_check_timestamp = None
     created_timestamp = None
@@ -70,6 +72,9 @@ class ChangeLogBase:
         else:
             return '<i class="fa-solid fa-equals" style="color: #FFD43B;"></i>'
 
+    def is_valid(self):
+        return self.low_value < self.base_value < self.high_value and self.low_value >= 0.0 and len(self.name) > 0
+
 
 class Stock(models.Model, ChangeLogBase):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -83,6 +88,10 @@ class Stock(models.Model, ChangeLogBase):
     created_timestamp = models.FloatField(default=time.time())
 
     code = models.CharField(max_length=16)
+
+    def is_valid(self):
+        return super().is_valid() and 0 < len(self.code) <= 16
+
 
 
 class Other(models.Model, ChangeLogBase):

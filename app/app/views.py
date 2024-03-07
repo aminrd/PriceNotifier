@@ -20,32 +20,33 @@ from . import pages
 
 
 def home(request):
-    homepage = pages.Home()
-    return homepage.render(request)
+    page = pages.Home()
+    return page.render(request)
 
 
 def add_stock(request):
-    homepage = pages.NewStock()
-    return homepage.render(request)
+    page = pages.NewStock()
+    return page.render(request)
 
 
 def modify_stock(request, id):
-    homepage = pages.ModifyStock()
-    return homepage.render(request)
+    page = pages.ModifyStock(id)
+    return page.render(request)
+
 
 def add_other(request):
-    homepage = pages.NewOther()
-    return homepage.render(request)
+    page = pages.NewOther()
+    return page.render(request)
 
 
 def modify_other(request, id):
-    homepage = pages.ModifyOther()
-    return homepage.render(request)
+    page = pages.ModifyOther(id)
+    return page.render(request)
 
 
 def settings(request):
-    setting_page = pages.Settings()
-    return setting_page.render(request)
+    page = pages.Settings()
+    return page.render(request)
 
 
 def handle404(request, exception):

@@ -2,39 +2,47 @@
 {% block content %}
         <div class="row">
           <div class="col-4">
-            <form>
+            <form method="post">
+              {% csrf_token %}
               <div class="form-group">
                 <label for="name">Name</label>
-                <input type="text" class="form-control" id="name">
+                <input type="text" class="form-control" id="name" name="name" {%if existing_stock %} value="{{existing_stock.name}}" {% endif %}>
                 <small class="form-text text-muted">Name of the stack tracking</small>
               </div>
               <div class="form-group">
                 <label for="code">Code</label>
-                <input type="text" class="form-control" id="code">
+                <input type="text" class="form-control" id="code" name="code" {%if existing_stock %} value="{{existing_stock.code}}" {% endif %}>
                 <small class="form-text text-muted">Stock code (e.g. NVDA, AAPL)</small>
               </div>
               <div class="form-group">
                 <label for="base_value">Current Value</label>
-                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="base_value">
+                <input type="number" min="0.00" max="100000.00" step="0.000001" class="form-control" id="base_value" name="base_value" {%if existing_stock %} value="{{existing_stock.base_value}}" {% endif %}>
                 <small class="form-text text-muted">Current value of the stock (e.g. 880.0)</small>
               </div>
               <div class="form-group">
                 <label for="high_value">High Value <i class="fa-solid fa-arrow-trend-up" style="color: #63E6BE;"></i></label>
-                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="high_value">
+                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="high_value" name="high_value" {%if existing_stock %} value="{{existing_stock.high_value}}" {% endif %}>
                 <small class="form-text text-muted">You will be notified if value goes above this value</small>
               </div>
               <div class="form-group">
                 <label for="low_value">Low Value <i class="fa-solid fa-arrow-trend-down" style="color: #d62e2e;"></i></label>
-                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="low_value">
+                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="low_value" name="low_value" {%if existing_stock %} value="{{existing_stock.low_value}}" {% endif %}>
                 <small class="form-text text-muted">ou will be notified if value goes below this value</small>
               </div>
               <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="notify" checked>
+                <input class="form-check-input" type="checkbox" id="notify" name="notify" {%if existing_stock %} {%if existing_stock.notify %} checked {% endif %}{% else %}checked{% endif %}>
                 <label class="form-check-label" for="notify">Receive notifications for this stock</label>
               </div>
               <hr>
-              <button type="submit" class="btn btn-primary">Submit</button>
+              <button type="submit" class="btn btn-primary">Save</button>
             </form>
+
+            {%if existing_stock %}
+              <div class="row justify-content-center">
+                <button class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button>
+              </div>
+            {% endif %}
+
           </div>
 
           <div class="col-8">
@@ -56,13 +64,13 @@
               <div class="col-12">
               <br>
               <!-- Current price card -->
-              <div class="row justify-content-center d-none" id="query_result:price">
+              <div class="row justify-content-center" id="query_result:price">
                   <div class="card border-left-success shadow h-100 py-2">
                       <div class="card-body">
                           <div class="row no-gutters align-items-center">
                               <div class="col mr-3">
                                   <div class="text-xs font-weight-bold text-success text-uppercase mb-1">current closing</div>
-                                  <div class="h5 mb-0 font-weight-bold text-gray-800" id="query_result:value">$0000000</div>
+                                  <div class="h5 mb-0 font-weight-bold text-gray-800" id="query_result:value"><i class="fa-solid fa-spinner fa-spin"></i></div>
                               </div>
                               <div class="col-auto">
                                   <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
@@ -70,6 +78,10 @@
                           </div>
                       </div>
                   </div>
+              </div>
+
+              <div class="row justify-content-center">
+                <button class="btn btn-info mb-2" onclick="fill_form()"><i class="fa-solid fa-left-long"></i> Move to form</button>
               </div>
 
             </div>
@@ -81,13 +93,20 @@
 
 {% block scripts %}
 <script>
+  var global_variables = {
+    "current_stock_code": "",
+    "current_stock_price": NaN,
+  };
+
   function make_visible(element){
     element.classList.remove("d-none");
   }
 
   function search_current_price(code){
     const xhr = new XMLHttpRequest();
-    let url = "api/stock/" + code + "/current"
+    let url = "api/stock/" + code + "/current";
+    global_variables["current_stock_code"] = code;
+
     xhr.open("GET", url);
     xhr.send();
     xhr.responseType = "json";
@@ -97,8 +116,10 @@
         let result_value_element = document.getElementById("query_result:value");
         result_value_element.innerHTML = "$" + data["price"];
 
-        let price_holder = document.getElementById("query_result:price")
-        make_visible(price_holder);
+        let price = parseFloat(data["price"]);
+        if (!isNaN(price))
+          global_variables["current_stock_price"] = price;
+
       } else {
         console.log(`Error: ${xhr.status}`);
       }
@@ -114,5 +135,18 @@
 
     search_current_price(code);
   }
+
+  function fill_form(){
+    let price = global_variables["current_stock_price"];
+    if (isNaN(price))
+      return;
+
+    document.getElementById("name").value = global_variables["current_stock_code"];
+    document.getElementById("code").value = global_variables["current_stock_code"];
+    document.getElementById("base_value").value = price;
+    document.getElementById("high_value").value = price * 1.1;
+    document.getElementById("low_value").value = price * 0.9;
+  }
+
 </script>
 {% endblock %}

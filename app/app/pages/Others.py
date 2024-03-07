@@ -13,5 +13,5 @@ class ModifyOther(PageBase):
     page_name = "Modify an existing custom price tracker"
     template_name = "new_other.html"
 
-    def __init__(self):
-        pass
+    def __init__(self, id):
+        self.id = id

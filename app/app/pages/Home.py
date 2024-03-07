@@ -1,5 +1,6 @@
 from .PageBase import PageBase
 from ..models import Stock, Other
+from ..utility.stock import sync_stocks
 
 
 class Home(PageBase):
@@ -7,5 +8,6 @@ class Home(PageBase):
     template_name = "home.html"
 
     def __init__(self):
-        self.params['stocks'] = Stock.objects.all()
+        all_stocks = sync_stocks(Stock.objects.all())
+        self.params['stocks'] = all_stocks
         self.params['others'] = Other.objects.all()

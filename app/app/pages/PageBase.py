@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.core.exceptions import BadRequest
 from ..common_variables import APPLICATION_NAME
 
 
@@ -17,5 +18,24 @@ class PageBase:
             cntx[k] = v
         return cntx
 
-    def render(self, request):
+    def default_response(self, request):
         return render(request, template_name=self.template_name, context=self.get_contex())
+
+    def get_hanlder(self, request):
+        return self.default_response(request)
+
+    def post_hanlder(self, request):
+        return BadRequest("Invalid Request")
+
+    def delete_handler(self, request):
+        return BadRequest("Invalid Request")
+
+    def render(self, request):
+        if request.method == "GET":
+            return self.get_hanlder(request)
+        elif request.method == "POST":
+            return self.post_hanlder(request)
+        elif request.method == "DELETE":
+            return self.delete_handler(request)
+        else:
+            return BadRequest("Invalid Request")
