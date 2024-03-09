@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 from . import apis
-from .utility.UserSettings import init_settings
+from .utility.Config import init_configs
 
 admin.site.site_header = 'PriceNotifier Admin Panel'
 admin.site.index_title = 'Database management'

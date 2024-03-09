@@ -1,5 +1,5 @@
 from .PageBase import PageBase
-from ..utility import UserSettings
+from ..utility import Config
 
 
 class Settings(PageBase):
@@ -7,6 +7,6 @@ class Settings(PageBase):
     template_name = "settings.html"
 
     def __init__(self):
-        user_settings = UserSettings.UserSettings()
+        user_settings = UserSettings.Config()
         setting_list = sorted(user_settings.settings, key=lambda s: s.get_section())
         self.params['user_settings'] = setting_list

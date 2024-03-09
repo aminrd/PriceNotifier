@@ -9,7 +9,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 import os, datetime, random, string
 from django.utils import timezone
-from .common_variables import *
+from . import common_variables
 
 
 class Settings(models.Model):
@@ -39,6 +39,7 @@ class Settings(models.Model):
 def epoch_to_datetime(epoch: float) -> str:
     dt = datetime.datetime.fromtimestamp(epoch)
     return dt.astimezone().strftime('%Y-%m-%d %H:%M')
+
 
 class ChangeLogBase:
     id = None
@@ -93,7 +94,6 @@ class Stock(models.Model, ChangeLogBase):
         return super().is_valid() and 0 < len(self.code) <= 16
 
 
-
 class Other(models.Model, ChangeLogBase):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     base_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
@@ -110,3 +110,27 @@ class Other(models.Model, ChangeLogBase):
 
     def url_short(self):
         return self.url[:50] + '....'
+
+
+class TelegramSubscribe(models.Model):
+    id = models.IntegerField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='user_telegram_subscribers')
+
+
+class UserProfile(models.Model):
+    default_user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    subscription_plan = models.CharField(max_length=64, default="free")
+    activated = models.BooleanField(default=True)
+    verified = models.BooleanField(default=False)
+
+
+class Token(models.Model):
+    id = models.CharField(primary_key=True, max_length=common_variables.ONE_TIME_TOKEN_LENGTH)
+    expiry = models.DateTimeField()
+    used_id = models.UUIDField()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits,
+                                         k=common_variables.ONE_TIME_TOKEN_LENGTH))
+        self.expiry = datetime.datetime.now() + common_variables.ONE_TIME_TOKEN_LENGTH

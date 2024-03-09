@@ -9,7 +9,7 @@ TELEGRAM_BOT_API_KEY_CONFIG = "notif:telegram::api_key"
 RUNTIME_FREQUENCY_MINUTES = "app:logic::frequency_minutes"
 
 
-def init_settings():
+def init_configs():
     init_setting_list = (
         Settings(key=TELEGRAM_BOT_API_KEY_CONFIG, value=""),
         Settings(key=RUNTIME_FREQUENCY_MINUTES, value="3600"),
@@ -25,10 +25,17 @@ def init_settings():
             setting.save()
 
 
-class UserSettings:
+class Config:
     settings = None
 
     def __init__(self):
-        init_settings()
+        init_configs()
         self.settings = Settings.objects.all()
 
+
+def get_telegram_api_key() -> str:
+    try:
+        setting = Settings.objects.get(key=TELEGRAM_BOT_API_KEY_CONFIG)
+        return setting.value
+    except:
+        return ""

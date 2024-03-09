@@ -13,3 +13,4 @@ class RequestParse:
 
     def get_radio(self, key: str) -> bool:
         return self.request.POST.get(key, "off").lower() == "on"
+
