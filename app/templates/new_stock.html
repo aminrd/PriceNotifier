@@ -16,17 +16,17 @@
               </div>
               <div class="form-group">
                 <label for="base_value">Current Value</label>
-                <input type="number" min="0.00" max="100000.00" step="0.000001" class="form-control" id="base_value" name="base_value" {%if existing_stock %} value="{{existing_stock.base_value}}" {% endif %}>
+                <input type="number" min="0.00" max="1000000.00" step="0.000001" class="form-control" id="base_value" name="base_value" {%if existing_stock %} value="{{existing_stock.base_value}}" {% endif %}>
                 <small class="form-text text-muted">Current value of the stock (e.g. 880.0)</small>
               </div>
               <div class="form-group">
                 <label for="high_value">High Value <i class="fa-solid fa-arrow-trend-up" style="color: #63E6BE;"></i></label>
-                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="high_value" name="high_value" {%if existing_stock %} value="{{existing_stock.high_value}}" {% endif %}>
+                <input type="number" min="0.00" max="1000000.00" step="0.01" class="form-control" id="high_value" name="high_value" {%if existing_stock %} value="{{existing_stock.high_value}}" {% endif %}>
                 <small class="form-text text-muted">You will be notified if value goes above this value</small>
               </div>
               <div class="form-group">
                 <label for="low_value">Low Value <i class="fa-solid fa-arrow-trend-down" style="color: #d62e2e;"></i></label>
-                <input type="number" min="0.00" max="100000.00" step="0.01" class="form-control" id="low_value" name="low_value" {%if existing_stock %} value="{{existing_stock.low_value}}" {% endif %}>
+                <input type="number" min="0.00" max="1000000.00" step="0.01" class="form-control" id="low_value" name="low_value" {%if existing_stock %} value="{{existing_stock.low_value}}" {% endif %}>
                 <small class="form-text text-muted">ou will be notified if value goes below this value</small>
               </div>
               <div class="form-check form-switch">

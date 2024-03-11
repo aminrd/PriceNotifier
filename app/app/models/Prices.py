@@ -1,39 +1,8 @@
+import datetime
 import time
-import uuid
+from uuid import uuid4
 from django.db import models
 from django.contrib.auth.models import User
-from django.templatetags.static import static
-
-# Image and Thumbnail related libraries
-from io import BytesIO
-from django.core.files.uploadedfile import InMemoryUploadedFile
-import os, datetime, random, string
-from django.utils import timezone
-from . import common_variables
-
-
-class Settings(models.Model):
-    # key=SECTION::KEY
-    key = models.CharField(primary_key=True, max_length=128)
-    value = models.CharField(max_length=512)
-
-    def get_section(self):
-        return self.key.split("::")[0].split(":")[0]
-
-    def get_key_name(self):
-        return self.key.split("::")[0].split(":")[1]
-
-    def get_icon(self):
-        section = self.get_section()
-        if section == "notif":
-            return '<i class="fa-solid fa-bell" style="color: #74C0FC;"></i>'
-        elif section == "app":
-            return '<i class="fa-solid fa-gears" style="color: #74C0FC;"></i>'
-        else:
-            return ''
-
-    def get_name(self):
-        return self.key.split("::")[1]
 
 
 def epoch_to_datetime(epoch: float) -> str:
@@ -50,6 +19,7 @@ class ChangeLogBase:
     last_value = None
     last_check_timestamp = None
     created_timestamp = None
+    owner = None
 
     def last_modified(self):
         return epoch_to_datetime(self.created_timestamp)
@@ -78,11 +48,14 @@ class ChangeLogBase:
 
 
 class Stock(models.Model, ChangeLogBase):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_stocks")
+
     base_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     last_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     high_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     low_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
+
     name = models.CharField(max_length=32)
     notify = models.BooleanField(default=True)
     last_check_timestamp = models.FloatField(default=time.time())
@@ -95,11 +68,14 @@ class Stock(models.Model, ChangeLogBase):
 
 
 class Other(models.Model, ChangeLogBase):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_others")
+
     base_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     last_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     high_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
     low_value = models.DecimalField(max_digits=10, decimal_places=3, default=0.0)
+
     name = models.CharField(max_length=32)
     notify = models.BooleanField(default=True)
     last_check_timestamp = models.FloatField(default=time.time())
@@ -110,27 +86,3 @@ class Other(models.Model, ChangeLogBase):
 
     def url_short(self):
         return self.url[:50] + '....'
-
-
-class TelegramSubscribe(models.Model):
-    id = models.IntegerField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='user_telegram_subscribers')
-
-
-class UserProfile(models.Model):
-    default_user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    subscription_plan = models.CharField(max_length=64, default="free")
-    activated = models.BooleanField(default=True)
-    verified = models.BooleanField(default=False)
-
-
-class Token(models.Model):
-    id = models.CharField(primary_key=True, max_length=common_variables.ONE_TIME_TOKEN_LENGTH)
-    expiry = models.DateTimeField()
-    used_id = models.UUIDField()
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.id = ''.join(random.choices(string.ascii_uppercase + string.ascii_lowercase + string.digits,
-                                         k=common_variables.ONE_TIME_TOKEN_LENGTH))
-        self.expiry = datetime.datetime.now() + common_variables.ONE_TIME_TOKEN_LENGTH

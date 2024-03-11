@@ -1,7 +1,7 @@
 import time
 
 from .PageBase import PageBase
-from ..models import Stock, Other
+from ..models import Stock
 from ..utility.common import RequestParse
 from django.shortcuts import redirect, get_object_or_404
 
@@ -24,12 +24,13 @@ class NewStock(PageBase):
     page_name = "Track a new stock"
     template_name = "new_stock.html"
 
-    def post_hanlder(self, request):
-        stock = get_stock_from_post_request(request)
+    def post_hanlder(self):
+        stock = get_stock_from_post_request(self.request)
+        stock.owner = self.user
 
         if not stock.is_valid():
             self.params["NOTIFY_ERROR"] = "The form is not valid!"
-            return super().default_response(request)
+            return super().default_response()
 
         stock.save()
         return redirect('home')
@@ -39,18 +40,21 @@ class ModifyStock(PageBase):
     page_name = "Modify an existing stock tracking"
     template_name = "new_stock.html"
 
-    def __init__(self, id):
+    def __init__(self, request, id):
         self.stock = get_object_or_404(Stock, pk=id)
+        super().__init__(request)
 
-    def get_hanlder(self, request):
+    def get_hanlder(self):
         self.params["existing_stock"] = self.stock
-        return super().get_hanlder(request)
+        return super().get_hanlder()
 
-    def post_hanlder(self, request):
-        modified_stock = get_stock_from_post_request(request)
+    def post_hanlder(self):
+        modified_stock = get_stock_from_post_request(self.request)
+        modified_stock.owner = self.user
+
         if not modified_stock.is_valid():
             self.params["NOTIFY_ERROR"] = "The form is not valid!"
-            return super().default_response(request)
+            return super().default_response()
 
         self.stock.name = modified_stock.name
         self.stock.code = modified_stock.code
@@ -63,6 +67,6 @@ class ModifyStock(PageBase):
 
         return redirect('home')
 
-    def delete_handler(self, request):
+    def delete_handler(self):
         self.stock.delete()
         return redirect('home')

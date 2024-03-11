@@ -1,4 +1,5 @@
 from ..models import Settings
+from ..settings import TELEGRAM_BOT_API_key
 
 
 def get_all_settings():
@@ -11,7 +12,7 @@ RUNTIME_FREQUENCY_MINUTES = "app:logic::frequency_minutes"
 
 def init_configs():
     init_setting_list = (
-        Settings(key=TELEGRAM_BOT_API_KEY_CONFIG, value=""),
+        Settings(key=TELEGRAM_BOT_API_KEY_CONFIG, value=TELEGRAM_BOT_API_key),
         Settings(key=RUNTIME_FREQUENCY_MINUTES, value="3600"),
     )
 
@@ -38,4 +39,4 @@ def get_telegram_api_key() -> str:
         setting = Settings.objects.get(key=TELEGRAM_BOT_API_KEY_CONFIG)
         return setting.value
     except:
-        return ""
+        return TELEGRAM_BOT_API_key

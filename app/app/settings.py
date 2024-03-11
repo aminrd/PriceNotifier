@@ -1,18 +1,9 @@
 import os
 from datetime import datetime
 from pathlib import Path
-from .common_variables import APPLICATION_NAME
 
 now = datetime.now()
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-76p^^_#tp0v)$kgy(r2^m^12j@j-mp%a#6^cbc))0tb#pe-4&='
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -92,7 +83,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 STATIC_URL = '/static/'
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 
@@ -100,10 +90,18 @@ STATICFILES_DIRS = [
     STATIC_DIR,
 ]
 
+# =============================================================================================================
+# Environment Variables
+# =============================================================================================================
+APPLICATION_NAME = os.environ.get("APPLICATION_NAME", "PriceNotifier")
+INSTANCE_NAME = os.environ.get("INSTANCE_NAME", "Local")
+TELEGRAM_BOT_API_key = os.environ.get("TELEGRAM_BOT_API_KEY", "")
+SECRET_KEY = os.environ.get("SECRET_KEY", 'django-insecure-76p^^_#tp0v)$kgy(r2^m^12j@j-mp%a#6^cbc))0tb#pe-4&=')
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(";")
+# =============================================================================================================
 
-# Default primary key field type
-# https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
-
+IS_LOCAL_INSTANCE = INSTANCE_NAME == "Local"
+Debug = IS_LOCAL_INSTANCE
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 __author__ = "Amin Aghaee"

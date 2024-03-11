@@ -1,11 +1,22 @@
+import os
+import sys
+from pathlib import Path
 import logging
 import asyncio
+import django
 import telegram
-from telegram import ForceReply, Update
+from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
-from ..utility.Config import get_telegram_api_key
-from ..models import Token, User
 
+# Connecting to Django ORM
+app_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(app_dir))
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
+django.setup()
+
+from app.utility.Config import get_telegram_api_key
+from app.models import Token, TelegramSubscribe
+from app.settings import APPLICATION_NAME
 
 class TelegramBot:
     api_token = ""
@@ -27,7 +38,10 @@ class TelegramBot:
         application.add_handler(CommandHandler("unsubscribe", unsubscribe))
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, help_command))
-        application.run_polling(allowed_updates=Update.ALL_TYPES)
+        self.application = application
+
+    def start(self):
+        self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
     async def sync_updates(self):
         offset = None
@@ -36,7 +50,7 @@ class TelegramBot:
 
         while iteration < max_iter:
             iteration += 1
-            updates = await bot.getUpdates(limit=1000, offset=offset)
+            updates = await bot.getUpdates(limit=100, offset=offset)
             if len(updates) < 1:
                 return
 
@@ -50,6 +64,7 @@ class TelegramBot:
 
                 offset = update.update_id + 1
 
+
 def get_token_by_message(message: str) -> Token:
     try:
         _, token_key = message.strip().split()
@@ -58,34 +73,49 @@ def get_token_by_message(message: str) -> Token:
     except:
         return None
 
-def consume_token(token) -> User:
-    try:
-        user = User.objects.get(id=None)
-    except:
-        return None
 
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     token = get_token_by_message(update.message.text)
-    if token is None:
+    if token is None or (user := token.user) is None:
         return
 
     token.delete()
-
-    user = update.effective_user
+    telegram_user = update.effective_user
+    TelegramSubscribe.objects.get_or_create(id=telegram_user.id, user=user)
     await update.message.reply_html(
-        rf"{user.mention_html()} you have successfully subscribed to receive notifications in Telegram!",
-        reply_markup=ForceReply(selective=True),
-    )
-    print(f"{user} has subscribed with messsage {update.message}")
-
-
-async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Help!")
+        rf"{telegram_user.mention_html()} you have successfully subscribed to receive notifications in Telegram!")
 
 
 async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    await update.message.reply_text("Why did you unsubscribe?!!!!")
+    telegram_user = update.effective_user
+
+    try:
+        telegram_subscription = TelegramSubscribe.objects.get(telegram_user.id)
+    except:
+        return
+
+    telegram_subscription.delete()
+    await update.message.reply_html(
+        rf"{telegram_user.mention_html()} you have successfully unsubscribed to receive notifications in Telegram!")
+
+
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    help_message = rf""" Hi {update.effective_user.mention_html()}! 
+    To use this bot, first generate a token in {APPLICATION_NAME} and then use: 
+    
+    /subscribe **token**  : to start subscribing all price notifications on your account
+
+    Or just use 
+    /unsubscribe          : to stop subscribing through telegram
+    """
+    print(help_message)
+    await update.message.reply_html(help_message)
 
 
 if __name__ == '__main__':
     bot = TelegramBot()
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(bot.start())
+

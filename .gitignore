@@ -161,3 +161,5 @@ cython_debug/
 
 .DS_Store
 .idea
+app/env.env
+app/app/migrations
