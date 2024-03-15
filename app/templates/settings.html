@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 
+{% if IS_LOCAL %}
 <form class="form-group">
       {% for setting in user_settings %}
         <div class="form-group">
@@ -17,5 +18,58 @@
 
     <button type="submit" class="btn btn-primary">Submit</button>
 </form>
+{% endif %}
+
+
+{% if TOKEN %}
+<hr>
+<div class="form-group row">
+  <label for="userToken" class="col-sm-2 col-form-label">Your token</label>
+  <div class="col-sm-3">
+    <input type="text" readonly style="font-weight: bold;" class="form-control-plaintext" id="userToken" value="{{TOKEN.id}}">
+  </div>
+  <div class="col-sm-4">
+    expires at <strong><span id="token_expiry_timer">--:--</span> </strong>
+  </div>
+</div>
+{% endif %}
+
+
+{% endblock %}
+
+{% block scripts %}
+{% if TOKEN %}
+<script type="text/javascript">
+
+  function toHHMMSS (secs){
+    var sec_num = parseInt(secs, 10)
+    var hours   = Math.floor(sec_num / 3600)
+    var minutes = Math.floor(sec_num / 60) % 60
+    var seconds = sec_num % 60
+
+    return [hours,minutes,seconds]
+        .map(v => v < 10 ? "0" + v : v)
+        .filter((v,i) => v !== "00" || i > 0)
+        .join(":")
+  }
+
+    function startTimer(duration, display) {
+        var timer = duration;
+        var token_interval = setInterval(function () {
+            display.textContent = toHHMMSS(timer);
+            if (--timer < 0) {
+                display.textContent = "token is expired, refresh this page!";
+                clearInterval(token_interval);
+            }
+        }, 1000);
+    }
+
+    window.onload = function () {
+      var expiry_seconds = {{TOKEN.expiry_seconds}},
+          display = document.querySelector('#token_expiry_timer');
+      startTimer(expiry_seconds, display);
+    };
+</script>
+{% endif %}
 
 {% endblock %}

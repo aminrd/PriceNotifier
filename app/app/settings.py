@@ -84,10 +84,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = '/static/'
-STATIC_DIR = os.path.join(BASE_DIR, 'static')
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 STATICFILES_DIRS = [
-    STATIC_DIR,
+    "app/static"
 ]
 
 # =============================================================================================================
@@ -101,7 +100,7 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(";")
 # =============================================================================================================
 
 IS_LOCAL_INSTANCE = INSTANCE_NAME == "Local"
-Debug = IS_LOCAL_INSTANCE
+DEBUG = IS_LOCAL_INSTANCE
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 __author__ = "Amin Aghaee"

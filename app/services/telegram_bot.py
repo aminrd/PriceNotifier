@@ -1,22 +1,17 @@
-import os
-import sys
-from pathlib import Path
 import logging
 import asyncio
-import django
+from asgiref.sync import sync_to_async
+from typing import Optional
 import telegram
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 
-# Connecting to Django ORM
-app_dir = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(app_dir))
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'app.settings')
-django.setup()
-
+from django.contrib.auth.models import User
 from app.utility.Config import get_telegram_api_key
 from app.models import Token, TelegramSubscribe
 from app.settings import APPLICATION_NAME
+from app.common_variables import ONE_TIME_TOKEN_LENGTH
+
 
 class TelegramBot:
     api_token = ""
@@ -56,45 +51,92 @@ class TelegramBot:
 
             for update in updates:
                 if "subscribe" in update.message.text:
-                    await subscribe(update)
+                    await subscribe(update, ContextTypes.DEFAULT_TYPE)
                 elif "unsubscribe" in update.message.text:
-                    await unsubscribe(update)
+                    await unsubscribe(update, ContextTypes.DEFAULT_TYPE)
                 else:
                     self.logger.log(logging.WARNING, f"Unhandled update message in the telegram bot {0}", update)
 
                 offset = update.update_id + 1
 
+    async def notify_users(self, receivers: Optional["Users"]):
+        pass
 
-def get_token_by_message(message: str) -> Token:
+
+def is_valid_string(obj: str, expected_length: int = None):
+    if obj is None or not isinstance(obj, str):
+        return False
+
+    if expected_length is not None:
+        return len(obj) == expected_length
+
+    return True
+
+
+def get_token_from_message(message: str) -> str:
+    if not is_valid_string(message):
+        return ""
+
+    split_message = message.strip().split()
+    if len(split_message) < 2:
+        return ""
+
+    return split_message[1]
+
+
+def get_user_by_token(token_key: str) -> User:
+    if not is_valid_string(token_key, ONE_TIME_TOKEN_LENGTH):
+        return None
+
     try:
-        _, token_key = message.strip().split()
-        token = Token.objects.get(id=token_key)
-        return token
+        token = Token.objects.get(pk=token_key)
+        if token.is_expired():
+            return None
+
+        return token.user
     except:
         return None
 
 
+def subscribe_telegram_to_user_profile(telegram_user_id: int, user: User):
+    telegram_subscription = TelegramSubscribe.objects.get_or_create(id=telegram_user_id, user=user)
+    return telegram_subscription
+
+
 async def subscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    token = get_token_by_message(update.message.text)
-    if token is None or (user := token.user) is None:
+    telegram_user = update.effective_user
+    if update.message is None:
         return
 
-    token.delete()
-    telegram_user = update.effective_user
-    TelegramSubscribe.objects.get_or_create(id=telegram_user.id, user=user)
+    token_key = get_token_from_message(update.message.text)
+    user = await sync_to_async(get_user_by_token, thread_sensitive=True)(token_key=token_key)
+    if user is None:
+        await update.message.reply_html(rf"{telegram_user.mention_html()} your token is not valid or expired!")
+        return
+
+    telegram_subscription = await sync_to_async(subscribe_telegram_to_user_profile, thread_sensitive=True)(
+        telegram_user_id=telegram_user.id, user=user)
+
+    if telegram_subscription is None:
+        await update.message.reply_html(rf"Unable to create a telegram subscription for user! User was not found!")
+        return
+
     await update.message.reply_html(
         rf"{telegram_user.mention_html()} you have successfully subscribed to receive notifications in Telegram!")
 
 
-async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    telegram_user = update.effective_user
-
+def unsubscribe_telegram_user(telegram_user_id: int):
     try:
-        telegram_subscription = TelegramSubscribe.objects.get(telegram_user.id)
+        telegram_subscription = TelegramSubscribe.objects.get(telegram_user_id)
+        telegram_subscription.delete()
     except:
         return
 
-    telegram_subscription.delete()
+
+async def unsubscribe(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    telegram_user = update.effective_user
+    await sync_to_async(unsubscribe_telegram_user, thread_sensitive=True)(telegram_user_id=telegram_user.id)
+
     await update.message.reply_html(
         rf"{telegram_user.mention_html()} you have successfully unsubscribed to receive notifications in Telegram!")
 
@@ -108,14 +150,4 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     Or just use 
     /unsubscribe          : to stop subscribing through telegram
     """
-    print(help_message)
     await update.message.reply_html(help_message)
-
-
-if __name__ == '__main__':
-    bot = TelegramBot()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(bot.start())
-

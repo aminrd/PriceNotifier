@@ -35,20 +35,18 @@
             <hr class="sidebar-divider my-0">
 
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Dashboard</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Price Trackins</h6>
-                        <a class="collapse-item" href="{% url 'home' %}">Existing Tracks</a>
-                        <a class="collapse-item" href="{% url 'new_stock' %}"><i class="fa-solid fa-plus"></i> Stock</a>
-                        <a class="collapse-item" href="{% url 'new_other' %}"><i class="fa-solid fa-plus"></i> Other</a>
-                    </div>
-                </div>
+                <a class="nav-link" href="{% url 'new_stock' %}">
+                    <i class="fa-solid fa-plus"></i>
+                    <span><strong>Stock</strong></span></a>
             </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'new_other' %}">
+                    <i class="fa-solid fa-plus"></i>
+                    <span><strong>Url Track</strong></span></a>
+            </li>
+
+            <hr class="sidebar-divider d-none d-md-block">
 
             {% if IS_LOCAL %}
             <li class="nav-item">
@@ -169,21 +167,20 @@
         </div>
     </div>
 
-    <!-- Bootstrap core JavaScript-->
-    <script type="javascript" src={% static "vendor/jquery/jquery.min.js" %}></script>
-    <script type="javascript" src={% static "vendor/bootstrap/js/bootstrap.bundle.min.js" %}></script>
-
-    <!-- Core plugin JavaScript-->
-    <script type="javascript" src={% static "vendor/jquery-easing/jquery.easing.min.js" %}></script>
-
-    <!-- Custom scripts for all pages-->
-    <script type="javascript" src={% static "js/sb-admin-2.min.js" %}></script>
-    <script type="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
-    {% if NOTIFY_ERROR %}<script>  window.alert("{{NOTIFY_ERROR}}")  </script>{% endif %}
-
-    {% block scripts %}
-    {% endblock %}
-
 </body>
+
+<!-- Bootstrap core JavaScript-->
+<script src={% static "vendor/jquery/jquery.min.js" %}></script>
+<script src={% static "vendor/bootstrap/js/bootstrap.bundle.min.js" %}></script>
+
+<!-- Core plugin JavaScript-->
+<script src={% static "vendor/jquery-easing/jquery.easing.min.js" %}></script>
+
+<!-- Custom scripts for all pages-->
+<script src={% static "js/sb-admin-2.min.js" %}></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/js/all.min.js"></script>
+{% if NOTIFY_ERROR %}<script>  window.alert("{{NOTIFY_ERROR}}")  </script>{% endif %}
+{% block scripts %}
+{% endblock %}
 
 </html>
