@@ -164,4 +164,4 @@ cython_debug/
 app/env.env
 app/app/migrations
 app/static
-
+app/unit_tests/_trial_temp/
