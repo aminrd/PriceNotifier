@@ -4,7 +4,7 @@ from asgiref.sync import sync_to_async
 from typing import Optional
 import telegram
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters, Updater
 
 from django.contrib.auth.models import User
 from app.utility.Config import get_telegram_api_key
@@ -34,6 +34,8 @@ class TelegramBot:
         application.add_handler(CommandHandler("help", help_command))
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, help_command))
         self.application = application
+
+        self.updater = Updater(self.api_token)
 
     def start(self):
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)

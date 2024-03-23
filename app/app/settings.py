@@ -92,7 +92,7 @@ STATICFILES_DIRS = [
 # =============================================================================================================
 # Environment Variables
 # =============================================================================================================
-APPLICATION_NAME = os.environ.get("APPLICATION_NAME", "PriceNotifier")
+APPLICATION_NAME = os.environ.get("APPLICATION_NAME", "WaverAlert")
 INSTANCE_NAME = os.environ.get("INSTANCE_NAME", "Local")
 TELEGRAM_BOT_API_key = os.environ.get("TELEGRAM_BOT_API_KEY", "")
 SECRET_KEY = os.environ.get("SECRET_KEY", 'django-insecure-76p^^_#tp0v)$kgy(r2^m^12j@j-mp%a#6^cbc))0tb#pe-4&=')

@@ -1,13 +1,12 @@
 from django.contrib import admin
 from django.urls import path
-from django.conf import settings
-from django.conf.urls.static import static
+from .settings import APPLICATION_NAME
 from . import views
 from . import apis
 
-admin.site.site_header = 'PriceNotifier Admin Panel'
+admin.site.site_header = f'{APPLICATION_NAME} Admin Panel'
 admin.site.index_title = 'Database management'
-admin.site.site_title = 'PriceNotifier Admin'
+admin.site.site_title = f'{APPLICATION_NAME} Admin'
 
 urlpatterns = [
     path('admin/', admin.site.urls),

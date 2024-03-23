@@ -14,4 +14,4 @@ class Result:
 
 
 ONE_TIME_TOKEN_LENGTH = 32
-TOKEN_LIFETIME = timedelta(1)
+TOKEN_LIFETIME = timedelta(0, 3600)

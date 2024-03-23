@@ -10,6 +10,7 @@ from .. import common_variables
 def now():
     return datetime.datetime.now(tz=pytz.timezone('UTC'))
 
+
 class Token(models.Model):
     id = models.CharField(primary_key=True, max_length=common_variables.ONE_TIME_TOKEN_LENGTH)
     expiry = models.DateTimeField()

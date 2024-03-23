@@ -1,6 +1,8 @@
 import datetime
 import time
+from typing import List
 from uuid import uuid4
+from asgiref.sync import sync_to_async
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -20,6 +22,8 @@ class ChangeLogBase:
     last_check_timestamp = None
     created_timestamp = None
     owner = None
+    price_type = None
+    notify = None
 
     def last_modified(self):
         return epoch_to_datetime(self.created_timestamp)
@@ -44,10 +48,32 @@ class ChangeLogBase:
             return '<i class="fa-solid fa-equals" style="color: #FFD43B;"></i>'
 
     def is_valid(self):
-        return self.low_value < self.base_value < self.high_value and self.low_value >= 0.0 and len(self.name) > 0
+        return self.high_value > self.base_value > self.low_value >= 0.0 and len(self.name) > 0
+
+    def should_notify(self):
+        return self.notify and (self.last_value >= self.high_value or self.last_value <= self.low_value)
+
+    def get_raw_notification_msg(self):
+        diff = self.base_value - self.last_value
+        msg = f"""
+            Your {self.price_type} {self.name} is now at {self.last_value}!
+            ${abs(diff)} {'above' if diff > 0 else 'below'} the starting price at ${self.base_value}  
+        """
+        return msg
+
+    def get_html_notification_msg(self):
+        diff = self.base_value - self.last_value
+        color = "red" if diff < 0 else "green"
+        emoji = "⏫" if diff < 0 else "⏬"
+        html = f"""
+            Your {self.price_type} <b>{self.name}</b> is now at <strong style="color:{color};">{self.last_value}</string>!
+            ${abs(diff)} {'above' if diff > 0 else 'below'} the starting price at <strong>${self.base_value}</strong> {emoji}  
+        """
+        return html
 
 
 class Stock(models.Model, ChangeLogBase):
+    price_type = "stock"
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_stocks")
 
@@ -68,6 +94,7 @@ class Stock(models.Model, ChangeLogBase):
 
 
 class Other(models.Model, ChangeLogBase):
+    price_type = "url track"
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_others")
 
@@ -86,3 +113,15 @@ class Other(models.Model, ChangeLogBase):
 
     def url_short(self):
         return self.url[:50] + '....'
+
+
+def get_user_changelogs(user: User) -> List[ChangeLogBase]:
+    price_tracks = []
+    price_tracks += list(user.user_stocks)
+    price_tracks += list(user.user_others)
+    return price_tracks
+
+
+async def get_user_changelogs_async(user: User) -> List[ChangeLogBase]:
+    stocks = await sync_to_async(get_user_changelogs, thread_sensitive=True)(user)
+    return stocks
