@@ -15,12 +15,16 @@ class TelegramSubscribe(models.Model, Subscriber):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, related_name='user_telegram_subscribers')
 
 
-def get_user_subscribers(user: User) -> List[Subscriber]:
-    subscribers = []
-    subscribers += list(user.user_telegram_subscribers)
-    return subscribers
+class UserRepository:
 
+    def __init__(self, user: User):
+        self.user = user
 
-async def get_user_subscribers_async(user: User) -> List[Subscriber]:
-    subscribers = await sync_to_async(get_user_subscribers, thread_sensitive=True)(user)
-    return subscribers
+    def get_user_subscribers(self) -> List[Subscriber]:
+        subscribers = []
+        subscribers += list(self.user.user_telegram_subscribers)
+        return subscribers
+
+    async def get_user_subscribers_async(self) -> List[Subscriber]:
+        subscribers = await sync_to_async(self.get_user_subscribers, thread_sensitive=True)()
+        return subscribers
